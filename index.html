@@ -26,7 +26,7 @@
       background: rgb(217, 222, 218);
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       max-width: 400px;
       margin: auto;
     }
@@ -55,7 +55,7 @@
       width: 80%;
     }
 
-    #showAdminForm { background-color: #007bff; color: rgb(240, 237, 237); }
+    #showAdminForm { background-color: #007bff; color: white; }
     #adminLogin { background-color: #28a745; color: white; }
     #farmerRegisterBtn { background-color: #ffc107; color: black; }
 
@@ -112,8 +112,9 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('showAdminForm').classList.add('hidden');
     });
 
-    // Admin Login
+    // ⭐ FIXED ADMIN LOGIN ⭐
     document.getElementById('adminLogin').addEventListener('click', async () => {
+
       const username = document.getElementById('adminUser').value.trim();
       const password = document.getElementById('adminPass').value.trim();
 
@@ -122,19 +123,25 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      const res = await fetch(API + '/auth/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
+      try {
+        const res = await fetch(API + '/auth/login', {   // ✔ Correct backend route
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (data.token) {
-        localStorage.setItem('adminToken', data.token);
-        location.href = 'admin.html';
-      } else {
-        alert(data.error || 'Login failed');
+        if (data.token) {
+          localStorage.setItem('adminToken', data.token); // ✔ Correct token save
+          location.href = 'admin.html';                   // ✔ Redirect
+        } else {
+          alert(data.error || 'Login failed');
+        }
+
+      } catch (err) {
+        alert("Server error, try again later.");
+        console.error(err);
       }
     });
 
