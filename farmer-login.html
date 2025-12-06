@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmer Login</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('karthik.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .container { text-align: center; }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      max-width: 400px;
+      margin: auto;
+    }
+
+    h1 {
+      color: white;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+      margin-bottom: 20px;
+    }
+
+    input {
+      display: block;
+      width: 80%;
+      padding: 10px;
+      margin: 10px auto;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 80%;
+      padding: 10px;
+      margin: 10px auto;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      color: white;
+      display: block;
+    }
+
+    #login { background-color: #28a745; }
+    #logout { background-color: #dc3545; display: none; }
+    #backBtn { background-color: #007bff; }
+    #backBtn:hover { background-color: #0056b3; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Farmer Login</h1>
+
+    <div class="card">
+      <input id="phone" placeholder="Phone" type="text" title="Enter Phone Number">
+
+      <button id="login">Login</button>
+      <button id="logout">Logout</button>
+
+      <button id="backBtn" onclick="location.href='index.html'">
+        Back to Main Page
+      </button>
+    </div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const API = 'http://localhost:4000/api';
+
+    // Login
+    document.getElementById('login').addEventListener('click', async () => {
+      const phone = document.getElementById('phone').value.trim();
+
+      if (!phone) {
+        alert("Please enter phone number");
+        return;
+      }
+
+      const res = await fetch(API + '/auth/farmer/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+
+      const data = await res.json();
+
+      if (data.farmer) {
+        localStorage.setItem('farmerId', data.farmer._id);
+
+        alert('Login successful!');
+
+        // ✅ Redirect to farmer dashboard
+        location.href = 'farmer.html';
+        
+      } else {
+        alert('Farmer not found');
+      }
+    });
+
+    // Logout
+    document.getElementById('logout').addEventListener('click', () => {
+      localStorage.removeItem('farmerId');
+      alert('Logged out successfully');
+      document.getElementById('logout').style.display = 'none';
+      document.getElementById('login').style.display = 'block';
+    });
+});
+</script>
+
+</body>
+</html>
