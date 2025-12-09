@@ -18,8 +18,11 @@
       color:white;
       font-size:14px;
     }
-    #logout { background:#e74c3c; }
-    #changePassBtn { background:#2980b9; margin-right:10px; }
+
+    .bg-red { background:#e74c3c; }
+    .bg-blue { background:#2980b9; }
+    .bg-green { background:#27ae60; }
+    .bg-purple { background:#8e44ad; }
 
     table { width:100%; border-collapse:collapse; margin-top:20px; }
     th, td { border:1px solid #ddd; padding:8px; text-align:left; }
@@ -40,15 +43,12 @@
       z-index:2000;
     }
 
-    /* Popup box */
     .popupBox {
       background:white;
       padding:20px;
       border-radius:8px;
       width:300px;
     }
-
-    .popupBox input { width:100%; }
   </style>
 </head>
 
@@ -59,18 +59,18 @@
   <h1>
     Admin Dashboard
     <div>
-      <button id="changePassBtn" class="btn">Change Password</button>
-      <button id="logout" class="btn" onclick="logout()">Logout</button>
+      <button id="changePassBtn" class="btn bg-blue">Change Password</button>
+      <button id="logout" class="btn bg-red" onclick="logout()">Logout</button>
     </div>
   </h1>
 
   <h3>Add Work Entry</h3>
 
-  <label>Select Farmer:</label><br>
-  <select id="farmerSelect"></select><br>
+  <label for="farmerSelect">Select Farmer:</label><br>
+  <select id="farmerSelect" title="Select Farmer" aria-label="Select Farmer"></select><br>
 
-  <label>Select Work Type:</label><br>
-  <select id="workType">
+  <label for="workType">Select Work Type:</label><br>
+  <select id="workType" title="Select Work Type" aria-label="Select Work Type">
     <option value="">-- Select --</option>
     <option>దుక్కు</option>
     <option>లోడింగ్</option>
@@ -81,22 +81,22 @@
     <option>గత్తం</option>
   </select><br>
 
-  <label>Work Time:</label><br>
-  <input id="minutes" type="text" placeholder="1 = 1h, 1.25 = 1h25m"><br>
+  <label for="minutes">Work Time:</label><br>
+  <input id="minutes" type="text" placeholder="1 = 1h, 1.25 = 1h25m" aria-label="Work time"><br>
 
-  <label>Rate per 60 min:</label><br>
-  <input id="rate" type="number"><br>
+  <label for="rate">Rate per 60 min:</label><br>
+  <input id="rate" type="number" aria-label="Rate per 60 minutes"><br>
 
-  <button id="addWork" class="btn" style="background:#27ae60;">Add Work</button>
+  <button id="addWork" class="btn bg-green">Add Work</button>
 
   <hr><br>
 
   <h3>All Work</h3>
 
-  <label>Filter Farmer:</label>
-  <select id="farmerSelectFilter"></select>
+  <label for="farmerSelectFilter">Filter Farmer:</label>
+  <select id="farmerSelectFilter" title="Filter Farmer" aria-label="Filter Farmer"></select>
 
-  <button id="viewHistory" class="btn" style="background:#8e44ad;">View Farmer History</button>
+  <button id="viewHistory" class="btn bg-purple">View Farmer History</button>
 
   <table id="worksTable">
     <thead>
@@ -123,13 +123,13 @@
     <h3>Change Password</h3>
 
     <label>Current Password</label>
-    <input id="currentPass" type="password">
+    <input id="currentPass" type="password" aria-label="Current Password">
 
     <label>New Password</label>
-    <input id="newPass" type="password">
+    <input id="newPass" type="password" aria-label="New Password">
 
-    <button onclick="submitPasswordChange()" class="btn" style="background:#27ae60;">Submit</button>
-    <button onclick="closePass()" class="btn" style="background:#c0392b;">Cancel</button>
+    <button onclick="submitPasswordChange()" class="btn bg-green">Submit</button>
+    <button onclick="closePass()" class="btn bg-red">Cancel</button>
   </div>
 </div>
 
@@ -139,19 +139,19 @@
     <h3>Edit Work</h3>
 
     <label>Work Type</label>
-    <input id="edit_workType">
+    <input id="edit_workType" aria-label="Edit Work Type">
 
     <label>Minutes</label>
-    <input id="edit_minutes" type="number">
+    <input id="edit_minutes" type="number" aria-label="Edit Minutes">
 
     <label>Rate</label>
-    <input id="edit_rate" type="number">
+    <input id="edit_rate" type="number" aria-label="Edit Rate">
 
     <label>Paid</label>
-    <input id="edit_paid" type="number">
+    <input id="edit_paid" type="number" aria-label="Edit Paid Amount">
 
-    <button onclick="saveEdit()" class="btn" style="background:#27ae60;">Save</button>
-    <button onclick="closeEdit()" class="btn" style="background:#c0392b;">Cancel</button>
+    <button onclick="saveEdit()" class="btn bg-green">Save</button>
+    <button onclick="closeEdit()" class="btn bg-red">Cancel</button>
   </div>
 </div>
 
@@ -199,6 +199,7 @@ async function loadFarmers(){
   const res = await fetch(API + "/admin/farmers", {
     headers:{ Authorization:"Bearer " + token() }
   });
+
   const list = await res.json();
 
   let sel = document.getElementById("farmerSelect");
@@ -244,7 +245,7 @@ document.getElementById("addWork").onclick = async () => {
   loadWorks();
 };
 
-// =================== LOAD WORKS =================== //
+// =================== LOAD WORKS (WITH TOTALS + BALANCE) =================== //
 async function loadWorks(){
   const farmer = document.getElementById("farmerSelectFilter").value;
   const tbody = document.querySelector("#worksTable tbody");
@@ -258,8 +259,7 @@ async function loadWorks(){
 
   const ws = await res.json();
 
-  let totalAmount = 0;
-  let totalPaid = 0;
+  let totalAmount = 0, totalPaid = 0;
 
   ws.forEach(w=>{
     totalAmount += w.totalAmount || 0;
@@ -277,26 +277,26 @@ async function loadWorks(){
 
         <td>
           <input id="pay_${w._id}" type="number" placeholder="Amount">
-          <button onclick="makePayment('${w._id}','${w.farmer?._id}')">Pay</button>
+          <button class="btn bg-green" onclick="makePayment('${w._id}','${w.farmer?._id}')">Pay</button>
         </td>
 
         <td>
-          <button onclick="edit('${w._id}','${w.workType}','${w.minutes}','${w.ratePer60}','${w.paymentGiven||0}')">Edit</button>
-          <button onclick="delWork('${w._id}')">Delete</button>
+          <button class="btn bg-blue" onclick="edit('${w._id}','${w.workType}','${w.minutes}','${w.ratePer60}','${w.paymentGiven||0}')">Edit</button>
+          <button class="btn bg-red" onclick="delWork('${w._id}')">Delete</button>
         </td>
       </tr>
     `;
   });
 
   const balance = totalAmount - totalPaid;
-  let balanceColor = balance > 0 ? "red" : "green";
+  let color = balance > 0 ? "red" : "green";
 
   tbody.innerHTML += `
-    <tr style="background:#fafafa; font-weight:bold;">
+    <tr style="font-weight:bold; background:#fafafa;">
       <td colspan="5" style="text-align:right;">Totals:</td>
       <td>₹${totalAmount.toFixed(2)}</td>
       <td>₹${totalPaid.toFixed(2)}</td>
-      <td colspan="2" style="color:${balanceColor};">Balance: ₹${balance.toFixed(2)}</td>
+      <td colspan="2" style="color:${color};">Balance: ₹${balance.toFixed(2)}</td>
     </tr>
   `;
 }
@@ -330,8 +330,8 @@ function edit(id, type, minutes, rate, paid){
   document.getElementById("editPopup").style.display = "flex";
 }
 
-function closeEdit(){ 
-  document.getElementById("editPopup").style.display = "none"; 
+function closeEdit(){
+  document.getElementById("editPopup").style.display = "none";
 }
 
 async function saveEdit(){
