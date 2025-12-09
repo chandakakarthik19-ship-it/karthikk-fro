@@ -23,11 +23,11 @@
     }
 
     .card {
-      background: rgb(217, 222, 218);
-      padding: 30px;
+      background: rgb(248, 248, 248);
+      padding: 60px;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      max-width: 400px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0);
+      max-width: 600px;
       margin: auto;
     }
 
@@ -45,17 +45,17 @@
     }
 
     button {
-      padding: 10px 20px;
-      margin: 10px auto;
+      padding: 15px 25px;
+      margin: 15px auto;
       border: none;
-      border-radius: 5px;
-      font-size: 16px;
+      border-radius: 8px;
+      font-size: 18px;
       cursor: pointer;
       display: block;
-      width: 80%;
+      width: 90%;
     }
 
-    #showAdminForm { background-color: #007bff; color: white; }
+    #showAdminForm { background-color: #007bff; color: rgb(240, 237, 237); }
     #adminLogin { background-color: #28a745; color: white; }
     #farmerRegisterBtn { background-color: #ffc107; color: black; }
 
@@ -112,9 +112,8 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('showAdminForm').classList.add('hidden');
     });
 
-    // ⭐ FIXED ADMIN LOGIN ⭐
+    // Admin Login
     document.getElementById('adminLogin').addEventListener('click', async () => {
-
       const username = document.getElementById('adminUser').value.trim();
       const password = document.getElementById('adminPass').value.trim();
 
@@ -123,25 +122,19 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      try {
-        const res = await fetch(API + '/auth/login', {   // ✔ Correct backend route
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
+      const res = await fetch(API + '/auth/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (data.token) {
-          localStorage.setItem('adminToken', data.token); // ✔ Correct token save
-          location.href = 'admin.html';                   // ✔ Redirect
-        } else {
-          alert(data.error || 'Login failed');
-        }
-
-      } catch (err) {
-        alert("Server error, try again later.");
-        console.error(err);
+      if (data.token) {
+        localStorage.setItem('adminToken', data.token);
+        location.href = 'admin.html';
+      } else {
+        alert(data.error || 'Login failed');
       }
     });
 
