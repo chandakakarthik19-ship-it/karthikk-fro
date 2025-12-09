@@ -66,11 +66,11 @@
 
   <h3>Add Work Entry</h3>
 
-  <label for="farmerSelect"><strong>Select Farmer:</strong></label><br>
-  <select id="farmerSelect" title="Choose Farmer"></select><br>
+  <label>Select Farmer:</label><br>
+  <select id="farmerSelect"></select><br>
 
-  <label for="workType"><strong>Select Work Type:</strong></label><br>
-  <select id="workType" title="Choose Work Type">
+  <label>Select Work Type:</label><br>
+  <select id="workType">
     <option value="">-- Select --</option>
     <option>దుక్కు</option>
     <option>లోడింగ్</option>
@@ -81,10 +81,10 @@
     <option>గత్తం</option>
   </select><br>
 
-  <label for="minutes"><strong>Work Time:</strong></label><br>
+  <label>Work Time:</label><br>
   <input id="minutes" type="text" placeholder="1 = 1h, 1.25 = 1h25m"><br>
 
-  <label for="rate"><strong>Rate per 60 min:</strong></label><br>
+  <label>Rate per 60 min:</label><br>
   <input id="rate" type="number"><br>
 
   <button id="addWork" class="btn" style="background:#27ae60;">Add Work</button>
@@ -93,8 +93,8 @@
 
   <h3>All Work</h3>
 
-  <label for="farmerSelectFilter"><strong>Filter Farmer:</strong></label>
-  <select id="farmerSelectFilter" title="Filter Work by Farmer"></select>
+  <label>Filter Farmer:</label>
+  <select id="farmerSelectFilter"></select>
 
   <button id="viewHistory" class="btn" style="background:#8e44ad;">View Farmer History</button>
 
@@ -163,7 +163,10 @@ function token(){ return localStorage.getItem("adminToken"); }
 document.getElementById("changePassBtn").onclick = () => {
   document.getElementById("passPopup").style.display = "flex";
 };
-function closePass(){ document.getElementById("passPopup").style.display = "none"; }
+
+function closePass(){
+  document.getElementById("passPopup").style.display = "none";
+}
 
 async function submitPasswordChange(){
   let currentPassword = document.getElementById("currentPass").value.trim();
@@ -252,9 +255,16 @@ async function loadWorks(){
   const res = await fetch(API + "/admin/work?farmerId=" + farmer, {
     headers:{ Authorization:"Bearer " + token() }
   });
+
   const ws = await res.json();
 
+  let totalAmount = 0;
+  let totalPaid = 0;
+
   ws.forEach(w=>{
+    totalAmount += w.totalAmount || 0;
+    totalPaid += w.paymentGiven || 0;
+
     tbody.innerHTML += `
       <tr>
         <td>${w.farmer?.name}</td>
@@ -262,12 +272,14 @@ async function loadWorks(){
         <td>${w.workType}</td>
         <td>${w.minutes}</td>
         <td>${w.ratePer60}</td>
-        <td>₹${w.totalAmount.toFixed(2)}</td>
-        <td>₹${w.paymentGiven?.toFixed(2) || 0}</td>
+        <td>₹${(w.totalAmount || 0).toFixed(2)}</td>
+        <td>₹${(w.paymentGiven || 0).toFixed(2)}</td>
+
         <td>
           <input id="pay_${w._id}" type="number" placeholder="Amount">
           <button onclick="makePayment('${w._id}','${w.farmer?._id}')">Pay</button>
         </td>
+
         <td>
           <button onclick="edit('${w._id}','${w.workType}','${w.minutes}','${w.ratePer60}','${w.paymentGiven||0}')">Edit</button>
           <button onclick="delWork('${w._id}')">Delete</button>
@@ -275,6 +287,18 @@ async function loadWorks(){
       </tr>
     `;
   });
+
+  const balance = totalAmount - totalPaid;
+  let balanceColor = balance > 0 ? "red" : "green";
+
+  tbody.innerHTML += `
+    <tr style="background:#fafafa; font-weight:bold;">
+      <td colspan="5" style="text-align:right;">Totals:</td>
+      <td>₹${totalAmount.toFixed(2)}</td>
+      <td>₹${totalPaid.toFixed(2)}</td>
+      <td colspan="2" style="color:${balanceColor};">Balance: ₹${balance.toFixed(2)}</td>
+    </tr>
+  `;
 }
 
 document.getElementById("farmerSelectFilter").onchange = loadWorks;
@@ -305,7 +329,10 @@ function edit(id, type, minutes, rate, paid){
   document.getElementById("edit_paid").value = paid;
   document.getElementById("editPopup").style.display = "flex";
 }
-function closeEdit(){ document.getElementById("editPopup").style.display = "none"; }
+
+function closeEdit(){ 
+  document.getElementById("editPopup").style.display = "none"; 
+}
 
 async function saveEdit(){
   const workType = document.getElementById("edit_workType").value;
