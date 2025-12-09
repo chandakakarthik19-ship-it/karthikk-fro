@@ -23,15 +23,17 @@
       color: #333;
     }
 
+    /* Table border color updated */
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
       font-size: 14px;
+      border: 2px solid #4CAF50;   /* GREEN border */
     }
 
     th, td {
-      border: 1px solid #ddd;
+      border: 1px solid #5cb85c; /* Light green borders */
       padding: 8px;
       text-align: left;
     }
@@ -48,6 +50,7 @@
     .totals {
       margin-top: 15px;
       font-weight: bold;
+      font-size: 16px;
     }
 
     button {
@@ -64,17 +67,12 @@
       background-color: #45a049;
     }
 
-    a {
-      color: #4CAF50;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
     .card {
       padding: 20px;
+    }
+
+    .whatsapp-btn {
+      background-color: #25D366;
     }
   </style>
 </head>
@@ -105,47 +103,57 @@
       <tbody></tbody>
     </table>
 
+    <!-- Balance area -->
     <div class="totals" id="totals"></div>
   </div>
 
   <button onclick="downloadPDF()">Download Work History PDF</button>
 
+  <!-- WhatsApp Button -->
+  <button class="whatsapp-btn" onclick="messageFarmer()">Message on WhatsApp</button>
+
   <p><a href="#" onclick="logout()">Logout</a></p>
 </div>
 
+<!-- PDF script -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
 const API = "https://karthikkk-back.onrender.com/api";
 
+let FARMER_PHONE = "";
 const farmerId = localStorage.getItem("farmerId");
-if(!farmerId){
-  alert("Please login first");
+
+if (!farmerId) {
+  alert("Please login first.");
   location.href = "farmer-login.html";
 }
 
 loadFarmerHistory(farmerId);
 
-async function loadFarmerHistory(id){
+// Load history + totals
+async function loadFarmerHistory(id) {
   try {
     const res = await fetch(`${API}/farmer/${id}`);
     const farmer = await res.json();
 
-    document.getElementById("info").innerHTML = `
+    FARMER_PHONE = farmer.phone;
+
+    document.getElementById('info').innerHTML = `
       <strong>${farmer.name}</strong><br>
-      Phone: ${farmer.phone}<br>
+      Phone: <b>${farmer.phone}</b><br>
     `;
 
     const hr = await fetch(`${API}/farmer/${id}/history`);
     const works = await hr.json();
 
-    const tbody = document.querySelector("#historyTable tbody");
-    tbody.innerHTML = "";
+    const tbody = document.querySelector('#historyTable tbody');
+    tbody.innerHTML = '';
 
     let totalAmount = 0;
     let totalPaid = 0;
 
-    works.forEach(w=>{
+    works.forEach(w => {
       totalAmount += w.totalAmount || 0;
       totalPaid += w.paymentGiven || 0;
 
@@ -163,33 +171,7 @@ async function loadFarmerHistory(id){
     });
 
     const balance = totalAmount - totalPaid;
+    const balanceColor = balance > 0 ? "red" : "green";
 
-    document.getElementById("totals").innerHTML =
-      `Total: ₹${totalAmount.toFixed(2)} | Paid: ₹${totalPaid.toFixed(2)} | Balance: ₹${balance.toFixed(2)}`;
-
-  } catch (err) {
-    console.error(err);
-    alert("Could not load data");
-  }
-}
-
-function downloadPDF(){
-  const element = document.getElementById("pdfContent");
-
-  html2pdf().from(element).set({
-    margin: 0.5,
-    filename: "work-history.pdf",
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
-  }).save();
-}
-
-function logout(){
-  localStorage.removeItem("farmerId");
-  location.href = "farmer-login.html";
-}
-</script>
-
-</body>
-</html>
+    document.getElementById('totals').innerHTML = `
+      To
