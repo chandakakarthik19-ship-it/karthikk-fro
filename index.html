@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rmana Tractor Service - Login</title>
-  <link rel="stylesheet" href="style.css" />
 
   <style>
     body {
@@ -24,10 +23,9 @@
 
     .card {
       background: rgb(248, 248, 248);
-      padding: 60px;
+      padding: 50px;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0);
-      max-width: 600px;
+      max-width: 450px;
       margin: auto;
     }
 
@@ -37,41 +35,40 @@
 
     input {
       display: block;
-      width: 80%;
+      width: 85%;
       padding: 10px;
       margin: 10px auto;
       border: 1px solid #ff0000;
       border-radius: 5px;
+      font-size: 16px;
     }
 
     button {
-      padding: 15px 25px;
-      margin: 15px auto;
+      padding: 14px 20px;
+      margin: 12px auto;
       border: none;
       border-radius: 8px;
       font-size: 18px;
       cursor: pointer;
-      display: block;
       width: 90%;
     }
 
-    #showAdminForm { background-color: #007bff; color: rgb(240, 237, 237); }
-    #adminLogin { background-color: #28a745; color: white; }
+    #showAdminForm { background-color: #007bff; color: white; }
+    #adminLogin     { background-color: #28a745; color: white; }
     #farmerRegisterBtn { background-color: #ffc107; color: black; }
+
+    .btn-group { margin-top: 15px; }
 
     .btn-group button:last-child {
       background-color: #17a2b8;
       color: white;
     }
 
-    .btn-group {
-      margin-top: 20px;
-    }
-
     h1 {
       color: white;
       text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
     }
+
   </style>
 </head>
 
@@ -87,8 +84,8 @@
         <button id="showAdminForm">Admin Login</button>
 
         <div id="adminForm" class="hidden">
-          <input id="adminUser" placeholder="username" title="Enter Admin Username" />
-          <input id="adminPass" placeholder="password" type="password" title="Enter Admin Password" />
+          <input id="adminUser" placeholder="Enter Admin Username" />
+          <input id="adminPass" placeholder="Enter Admin Password" type="password" />
           <button id="adminLogin">Submit</button>
         </div>
       </div>
@@ -104,7 +101,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const API = "https://karthikkk-back.onrender.com/api";
+    const API = "https://karthikkk-back.onrender.com/api";  // Your Backend URL
 
     // Show admin login form
     document.getElementById('showAdminForm').addEventListener('click', function(){
@@ -112,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('showAdminForm').classList.add('hidden');
     });
 
-    // Admin Login
+    // ⭐ FIXED: Admin Login (Correct API URL)
     document.getElementById('adminLogin').addEventListener('click', async () => {
       const username = document.getElementById('adminUser').value.trim();
       const password = document.getElementById('adminPass').value.trim();
@@ -122,19 +119,25 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      const res = await fetch(API + '/auth/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
+      try {
+        const res = await fetch(API + '/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (data.token) {
-        localStorage.setItem('adminToken', data.token);
-        location.href = 'admin.html';
-      } else {
-        alert(data.error || 'Login failed');
+        if (data.token) {
+          localStorage.setItem('adminToken', data.token);
+          location.href = 'admin.html';  // Redirect to dashboard
+        } else {
+          alert(data.error || 'Invalid admin credentials');
+        }
+
+      } catch (err) {
+        alert("Server Error. Try again.");
+        console.error(err);
       }
     });
 
