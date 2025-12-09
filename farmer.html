@@ -1,215 +1,209 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Farmer Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
+      background-color: #f4f4f4;
+      padding: 20px;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
-      padding: 20px;
       background: #fff;
+      padding: 20px;
+      border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
-    h1, h3 {
-      color: #333;
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
-      font-size: 14px;
     }
 
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
-      text-align: left;
+      font-size: 14px;
+      text-align:left;
     }
 
     th {
-      background-color: #4CAF50;
+      background: #4CAF50;
       color: white;
     }
 
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
+    tr:nth-child(even) { background: #f9f9f9; }
 
-    .totals {
+    .totals-box {
+      background: #fafafa;
+      padding: 15px;
       margin-top: 15px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 16px;
       font-weight: bold;
     }
 
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #4CAF50;
-      color: white;
+    .btn {
+      display: inline-block;
+      padding: 10px 18px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      margin-top: 15px;
+      margin-right: 10px;
+      color: white;
+      font-size: 14px;
     }
 
-    button:hover {
-      background-color: #45a049;
-    }
-
-    a {
-      color: #4CAF50;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .card {
-      padding: 20px;
-    }
+    #pdfBtn { background: #007bff; }
+    #whatsappBtn { background: #25D366; }
+    #logoutBtn { background: #e74c3c; }
   </style>
 </head>
 
 <body>
   <div class="container">
     <h1>Farmer Dashboard</h1>
-    <div class="card">
 
-      <!-- PDF content -->
-      <div id="pdfContent">
-        <div id="info">Loading farmer info...</div>
+    <div id="pdfContent">
+      <div id="info">Loading farmer info...</div>
 
-        <h3>Work History</h3>
-        <div id="historyContainer">
-          <table id="historyTable">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Work Type</th>
-                <th>Minutes</th>
-                <th>Rate / 60</th>
-                <th>Total Amount</th>
-                <th>Paid</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+      <h3>Work History</h3>
 
-        <div class="totals" id="totals"></div>
-      </div>
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Work Type</th>
+            <th>Minutes</th>
+            <th>Rate / 60</th>
+            <th>Total Amount</th>
+            <th>Paid</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-      <!-- PDF Download -->
-      <button onclick="downloadPDF()">Download Work History PDF</button>
-
-      <!-- Logout -->
-      <p><a href="#" onclick="logout()">Logout</a></p>
+      <div id="totals" class="totals-box"></div>
     </div>
+
+    <!-- Buttons -->
+    <button id="pdfBtn" class="btn" onclick="downloadPDF()">Download PDF</button>
+    <button id="whatsappBtn" class="btn" onclick="shareWhatsApp()">Share WhatsApp</button>
+    <button id="logoutBtn" class="btn" onclick="logout()">Logout</button>
   </div>
 
-  <!-- FIXED: Proper html2pdf script -->
+  <!-- PDF library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
     const API = "https://karthikkk-back.onrender.com/api";
 
-    // Check login
-    const farmerId = localStorage.getItem('farmerId');
+    const farmerId = localStorage.getItem("farmerId");
     if (!farmerId) {
-      alert("Please login first.");
-      location.href = 'farmer-login.html';
-    } else {
-      loadFarmerHistory(farmerId);
+      alert("Please login first");
+      location.href = "farmer-login.html";
     }
 
-    // Load farmer info + history
+    loadFarmerHistory(farmerId);
+
+    // Load farmer details + history
     async function loadFarmerHistory(id) {
       try {
-        const res = await fetch(`${API}/farmer/${id}`);
-        if (!res.ok) throw new Error('Failed to load farmer info');
-        const farmer = await res.json();
+        const infoRes = await fetch(`${API}/farmer/${id}`);
+        const farmer = await infoRes.json();
 
-        document.getElementById('info').innerHTML = `
+        document.getElementById("info").innerHTML = `
           <strong>${farmer.name}</strong><br>
           Phone: ${farmer.phone}<br>
         `;
 
-        const hr = await fetch(`${API}/farmer/${id}/history`);
-        if (!hr.ok) throw new Error('Failed to load history');
-        const works = await hr.json();
+        const hisRes = await fetch(`${API}/farmer/${id}/history`);
+        const works = await hisRes.json();
 
-        const tbody = document.querySelector('#historyTable tbody');
-        tbody.innerHTML = '';
+        const tbody = document.querySelector("#historyTable tbody");
+        tbody.innerHTML = "";
 
         let totalAmount = 0;
         let totalPaid = 0;
 
-        if (works.length) {
+        if (works.length > 0) {
           works.forEach(w => {
             totalAmount += w.totalAmount || 0;
-            totalPaid   += w.paymentGiven || 0;
+            totalPaid += w.paymentGiven || 0;
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${new Date(w.date).toLocaleDateString('en-IN')}</td>
-              <td>${w.workType || ''}</td>
-              <td>${w.minutes || 0}</td>
-              <td>${w.ratePer60 || 0}</td>
-              <td>₹${(w.totalAmount || 0).toFixed(2)}</td>
-              <td>₹${(w.paymentGiven || 0).toFixed(2)}</td>
-              <td>${w.notes || ''}</td>
+            tbody.innerHTML += `
+              <tr>
+                <td>${new Date(w.date).toLocaleDateString("en-IN")}</td>
+                <td>${w.workType || ""}</td>
+                <td>${w.minutes || 0}</td>
+                <td>₹${(w.ratePer60 || 0).toFixed(2)}</td>
+                <td>₹${(w.totalAmount || 0).toFixed(2)}</td>
+                <td>₹${(w.paymentGiven || 0).toFixed(2)}</td>
+                <td>${w.notes || ""}</td>
+              </tr>
             `;
-            tbody.appendChild(tr);
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="7">No work history found.</td></tr>';
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No history found</td></tr>`;
         }
 
         const balance = totalAmount - totalPaid;
 
-        document.getElementById('totals').innerHTML =
-          `Total Work Amount: ₹${totalAmount.toFixed(2)} | 
-           Total Paid: ₹${totalPaid.toFixed(2)} | 
-           Balance: ₹${balance.toFixed(2)}`;
+        document.getElementById("totals").innerHTML = `
+          Total Amount: ₹${totalAmount.toFixed(2)} <br>
+          Total Paid: ₹${totalPaid.toFixed(2)} <br>
+          Balance: ₹${balance.toFixed(2)}
+        `;
 
       } catch (err) {
         console.error(err);
-        alert("Something went wrong loading farmer data.");
+        alert("Failed to load data");
       }
     }
 
     // Download PDF
     function downloadPDF() {
-      const element = document.getElementById('pdfContent');
-
+      const element = document.getElementById("pdfContent");
       const opt = {
         margin: 0.5,
-        filename: 'work-history.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
+        filename: "work-history.pdf",
+        image: { type: "jpeg", quality: 0.98 },
         html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
       };
-
       html2pdf().set(opt).from(element).save();
+    }
+
+    // WhatsApp Share
+    function shareWhatsApp() {
+      const text = document.getElementById("totals").innerText;
+      const url = `https://wa.me/?text=${encodeURIComponent("Work Report:\n" + text)}`;
+      window.open(url, "_blank");
     }
 
     // Logout
     function logout() {
-      localStorage.removeItem('farmerId');
-      location.href = 'farmer-login.html';
+      localStorage.removeItem("farmerId");
+      location.href = "farmer-login.html";
     }
   </script>
 
 </body>
+
 </html>
