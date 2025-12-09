@@ -17,136 +17,112 @@
       font-family: Arial, sans-serif;
     }
 
-    .container {
-      text-align: center;
-    }
-
+    .container { text-align: center; }
     .card {
       background: rgb(248, 248, 248);
-      padding: 50px;
+      padding: 40px;
       border-radius: 10px;
-      max-width: 450px;
+      max-width: 400px;
       margin: auto;
-    }
-
-    .hidden {
-      display: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     input {
-      display: block;
-      width: 85%;
+      width: 90%;
       padding: 10px;
-      margin: 10px auto;
-      border: 1px solid #ff0000;
+      margin-top: 10px;
+      border: 1px solid #aaa;
       border-radius: 5px;
-      font-size: 16px;
     }
 
     button {
-      padding: 14px 20px;
-      margin: 12px auto;
+      width: 95%;
+      padding: 12px;
+      margin-top: 15px;
       border: none;
-      border-radius: 8px;
-      font-size: 18px;
+      border-radius: 6px;
+      font-size: 16px;
       cursor: pointer;
-      width: 90%;
-    }
-
-    #showAdminForm { background-color: #007bff; color: white; }
-    #adminLogin     { background-color: #28a745; color: white; }
-    #farmerRegisterBtn { background-color: #ffc107; color: black; }
-
-    .btn-group { margin-top: 15px; }
-
-    .btn-group button:last-child {
-      background-color: #17a2b8;
       color: white;
     }
 
-    h1 {
-      color: white;
-      text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
-    }
+    #showAdminForm { background: #007bff; }
+    #adminLogin { background: #28a745; }
+    #farmerRegisterBtn { background: #ffc107; color:black; }
+    #farmerLoginBtn { background: #17a2b8; }
 
+    .hidden { display: none; }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Tractor Tracker</h1>
 
-    <div class="card">
-      <h2>Login</h2>
+<div class="container">
+  <h1 style="color:white; text-shadow:2px 2px 6px black;">Tractor Tracker</h1>
 
-      <!-- Admin Section -->
-      <div id="adminSection">
-        <button id="showAdminForm">Admin Login</button>
+  <div class="card">
+    <h2>Login</h2>
 
-        <div id="adminForm" class="hidden">
-          <input id="adminUser" placeholder="Enter Admin Username" />
-          <input id="adminPass" placeholder="Enter Admin Password" type="password" />
-          <button id="adminLogin">Submit</button>
-        </div>
-      </div>
+    <!-- ADMIN LOGIN -->
+    <button id="showAdminForm">Admin Login</button>
 
-      <!-- Farmer Buttons -->
-      <div class="btn-group">
-        <button id="farmerRegisterBtn">Farmer Register</button>
-        <button onclick="location.href='farmer-login.html'">Farmer Login</button>
-      </div>
+    <div id="adminForm" class="hidden">
+      <input id="adminUser" placeholder="username">
+      <input id="adminPass" type="password" placeholder="password">
+      <button id="adminLogin">Submit</button>
     </div>
+
+    <hr>
+
+    <!-- FARMER BUTTONS -->
+    <button id="farmerRegisterBtn">Farmer Register</button>
+    <button id="farmerLoginBtn">Farmer Login</button>
+
   </div>
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+const API = "https://karthikkk-back.onrender.com/api";
 
-    const API = "https://karthikkk-back.onrender.com/api";  // Your Backend URL
+// Show admin login form
+document.getElementById("showAdminForm").onclick = () => {
+  document.getElementById("adminForm").classList.remove("hidden");
+  document.getElementById("showAdminForm").classList.add("hidden");
+};
 
-    // Show admin login form
-    document.getElementById('showAdminForm').addEventListener('click', function(){
-      document.getElementById('adminForm').classList.remove('hidden');
-      document.getElementById('showAdminForm').classList.add('hidden');
-    });
+// ADMIN LOGIN
+document.getElementById("adminLogin").onclick = async () => {
+  const username = document.getElementById("adminUser").value.trim();
+  const password = document.getElementById("adminPass").value.trim();
 
-    // ⭐ FIXED: Admin Login (Correct API URL)
-    document.getElementById('adminLogin').addEventListener('click', async () => {
-      const username = document.getElementById('adminUser').value.trim();
-      const password = document.getElementById('adminPass').value.trim();
+  if (!username || !password) {
+    alert("Enter username and password");
+    return;
+  }
 
-      if (!username || !password) {
-        alert("Please enter username and password");
-        return;
-      }
+  const res = await fetch(API + "/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
 
-      try {
-        const res = await fetch(API + '/admin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
+  const data = await res.json();
 
-        const data = await res.json();
+  if (data.token) {
+    localStorage.setItem("adminToken", data.token);
+    location.href = "admin.html";
+  } else {
+    alert(data.error || "Login failed");
+  }
+};
 
-        if (data.token) {
-          localStorage.setItem('adminToken', data.token);
-          location.href = 'admin.html';  // Redirect to dashboard
-        } else {
-          alert(data.error || 'Invalid admin credentials');
-        }
-
-      } catch (err) {
-        alert("Server Error. Try again.");
-        console.error(err);
-      }
-    });
-
-    // Farmer Register
-    document.getElementById('farmerRegisterBtn').addEventListener('click', () => {
-      location.href = 'register.html';
-    });
-
-});
+// Farmer buttons
+document.getElementById("farmerRegisterBtn").onclick = () => {
+  location.href = "register.html";
+};
+document.getElementById("farmerLoginBtn").onclick = () => {
+  location.href = "farmer-login.html";
+};
 </script>
 
 </body>
