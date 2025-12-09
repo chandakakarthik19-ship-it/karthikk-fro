@@ -4,364 +4,319 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
+    body { font-family: Arial, sans-serif; background:#f4f4f4; padding:20px; }
+    .container { max-width: 1100px; margin:auto; background:white; padding:20px; border-radius:8px; }
+    h1 { display:flex; justify-content:space-between; align-items:center; }
+
+    .btn {
+      padding:8px 14px;
+      border:none;
+      border-radius:5px;
+      cursor:pointer;
+      color:white;
+      font-size:14px;
+    }
+    #logout { background:#e74c3c; }
+    #changePassBtn { background:#2980b9; margin-right:10px; }
+
+    table { width:100%; border-collapse:collapse; margin-top:20px; }
+    th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+    th { background:#f0f0f0; }
+
+    input, select {
+      padding:8px; width:60%; margin-top:5px; margin-bottom:10px;
     }
 
-    .container {
-      width: 95%;
-      max-width: 1000px;
-      margin: auto;
-      padding-top: 20px;
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    #logout {
-      float: right;
-      margin-top: -35px;
-      background: #e74c3c;
-      padding: 8px 15px;
-      border-radius: 6px;
-      color: white;
-      text-decoration: none;
-    }
-
-    .card {
-      background: #fff;
-      padding: 25px;
-      margin-top: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    /* ⭐ EXTENDED WORK FORM */
-    .addWorkBox {
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .addWorkBox h2 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-
-    .formRow {
-      margin-bottom: 18px;
-    }
-
-    .formRow label {
-      font-size: 16px;
-      font-weight: bold;
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .bigInput {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border: 1px solid #bbb;
-      border-radius: 6px;
-      background: #fafafa;
-    }
-
-    .primaryBtn {
-      width: 100%;
-      padding: 12px;
-      background: #007bff;
-      color: white;
-      font-size: 18px;
-      border-radius: 6px;
-      border: none;
-    }
-
-    .primaryBtn:hover {
-      background: #0056b3;
-    }
-
-    table {
-      width: 100%;
-      margin-top: 20px;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-
-    th {
-      background: #f4f4f4;
-    }
-
-    #editPopup {
+    /* Popup background */
+    #passPopup, #editPopup {
       display:none;
-      position:fixed;
-      top:0; left:0;
+      position:fixed; top:0; left:0;
       width:100%; height:100%;
-      background:rgba(0,0,0,0.6);
+      background:rgba(0,0,0,0.5);
       justify-content:center;
       align-items:center;
+      z-index:2000;
     }
 
-    #editBox {
+    /* Popup box */
+    .popupBox {
       background:white;
       padding:20px;
+      border-radius:8px;
       width:300px;
-      border-radius:10px;
     }
+
+    .popupBox input { width:100%; }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Admin Dashboard</h1>
-    <a href="index.html" id="logout">Logout</a>
 
-    <!-- ⭐ ADD WORK SECTION -->
-    <div class="addWorkBox">
-      <h2>Add Work Entry</h2>
-
-      <div class="formRow">
-        <label>Select Farmer</label>
-        <select id="farmerSelect" class="bigInput">
-          <option value="">Choose Farmer</option>
-        </select>
-      </div>
-
-      <div class="formRow">
-        <label>Select Work Type</label>
-        <select id="workType" class="bigInput">
-          <option value="">Choose Work Type</option>
-          <option>దుక్కు</option>
-          <option>లోడింగ్</option>
-          <option>రోటావేటర్</option>
-          <option>దమ్ము</option>
-          <option>జొన్నలు</option>
-          <option>గత్తం</option>
-        </select>
-      </div>
-
-      <div class="formRow">
-        <label>Work Time (1 = 1hr, 1.30 = 1hr 30m, .45 = 45m)</label>
-        <input id="minutes" class="bigInput" placeholder="Enter time like 1, 1.30, .45" />
-      </div>
-
-      <div class="formRow">
-        <label>Rate per 60 min</label>
-        <input id="rate" type="number" class="bigInput" placeholder="Rate" />
-      </div>
-
-      <button id="addWork" class="primaryBtn">Add Work</button>
+<div class="container">
+  
+  <h1>
+    Admin Dashboard
+    <div>
+      <button id="changePassBtn" class="btn">Change Password</button>
+      <button id="logout" class="btn" onclick="logout()">Logout</button>
     </div>
+  </h1>
 
-    <!-- ⭐ WORK HISTORY -->
-    <div class="card">
-      <h3>Work History</h3>
+  <h3>Add Work Entry</h3>
 
-      <select id="farmerSelectFilter" class="bigInput">
-        <option value="">-- Select Farmer --</option>
-      </select>
+  <label for="farmerSelect"><strong>Select Farmer:</strong></label><br>
+  <select id="farmerSelect" title="Choose Farmer"></select><br>
 
-      <button id="viewHistory" class="primaryBtn" style="margin-top:15px;">View Farmer History</button>
+  <label for="workType"><strong>Select Work Type:</strong></label><br>
+  <select id="workType" title="Choose Work Type">
+    <option value="">-- Select --</option>
+    <option>దుక్కు</option>
+    <option>లోడింగ్</option>
+    <option>రోటావేటర్</option>
+    <option>దమ్ము</option>
+    <option>జొన్నలు</option>
+    <option>వరిసేను ఆట</option>
+    <option>గత్తం</option>
+  </select><br>
 
-      <table id="worksTable">
-        <thead>
-          <tr>
-            <th>Farmer</th>
-            <th>Date</th>
-            <th>Work Type</th>
-            <th>Minutes</th>
-            <th>Rate</th>
-            <th>Total</th>
-            <th>Paid</th>
-            <th>Pay</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <label for="minutes"><strong>Work Time:</strong></label><br>
+  <input id="minutes" type="text" placeholder="1 = 1h, 1.25 = 1h25m"><br>
+
+  <label for="rate"><strong>Rate per 60 min:</strong></label><br>
+  <input id="rate" type="number"><br>
+
+  <button id="addWork" class="btn" style="background:#27ae60;">Add Work</button>
+
+  <hr><br>
+
+  <h3>All Work</h3>
+
+  <label for="farmerSelectFilter"><strong>Filter Farmer:</strong></label>
+  <select id="farmerSelectFilter" title="Filter Work by Farmer"></select>
+
+  <button id="viewHistory" class="btn" style="background:#8e44ad;">View Farmer History</button>
+
+  <table id="worksTable">
+    <thead>
+      <tr>
+        <th>Farmer</th>
+        <th>Date</th>
+        <th>Work Type</th>
+        <th>Minutes</th>
+        <th>Rate</th>
+        <th>Total</th>
+        <th>Paid</th>
+        <th>Pay</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+</div>
+
+<!-- Change Password Popup -->
+<div id="passPopup">
+  <div class="popupBox">
+    <h3>Change Password</h3>
+
+    <label>Current Password</label>
+    <input id="currentPass" type="password">
+
+    <label>New Password</label>
+    <input id="newPass" type="password">
+
+    <button onclick="submitPasswordChange()" class="btn" style="background:#27ae60;">Submit</button>
+    <button onclick="closePass()" class="btn" style="background:#c0392b;">Cancel</button>
   </div>
+</div>
 
-  <!-- ⭐ EDIT POPUP -->
-  <div id="editPopup">
-    <div id="editBox">
-      <h3>Edit Work</h3>
+<!-- Edit Popup -->
+<div id="editPopup">
+  <div class="popupBox">
+    <h3>Edit Work</h3>
 
-      <label>Work Type</label>
-      <input id="edit_workType" class="bigInput">
+    <label>Work Type</label>
+    <input id="edit_workType">
 
-      <label>Minutes</label>
-      <input id="edit_minutes" type="number" class="bigInput">
+    <label>Minutes</label>
+    <input id="edit_minutes" type="number">
 
-      <label>Rate</label>
-      <input id="edit_rate" type="number" class="bigInput">
+    <label>Rate</label>
+    <input id="edit_rate" type="number">
 
-      <label>Paid</label>
-      <input id="edit_paid" type="number" class="bigInput">
+    <label>Paid</label>
+    <input id="edit_paid" type="number">
 
-      <button onclick="saveEdit()" class="primaryBtn" style="margin-top:10px;">Save</button>
-      <button onclick="closeEdit()" class="primaryBtn" style="background:#999;margin-top:10px;">Cancel</button>
-    </div>
+    <button onclick="saveEdit()" class="btn" style="background:#27ae60;">Save</button>
+    <button onclick="closeEdit()" class="btn" style="background:#c0392b;">Cancel</button>
   </div>
+</div>
 
 <script>
 const API = "https://karthikkk-back.onrender.com/api";
-function token(){ return localStorage.getItem('adminToken'); }
-let editingWorkId = null;
+function token(){ return localStorage.getItem("adminToken"); }
 
-// ⭐ Convert time format
-function convertToMinutes(timeStr){
-  if (!timeStr.includes(".")) return (Number(timeStr) || 0) * 60;
+// =================== CHANGE PASSWORD =================== //
+document.getElementById("changePassBtn").onclick = () => {
+  document.getElementById("passPopup").style.display = "flex";
+};
+function closePass(){ document.getElementById("passPopup").style.display = "none"; }
 
-  const [h, m] = timeStr.split(".");
-  const hours = Number(h) || 0;
-  let minutes = m.length == 1 ? Number(m + "0") : Number(m);
-  return hours * 60 + minutes;
-}
+async function submitPasswordChange(){
+  let currentPassword = document.getElementById("currentPass").value.trim();
+  let newPassword = document.getElementById("newPass").value.trim();
 
-// ⭐ Load Farmers
-async function loadFarmers() {
-  const res = await fetch(API + "/admin/farmers", { headers: { Authorization: "Bearer " + token() }});
-  const list = await res.json();
+  if(!currentPassword || !newPassword){
+    alert("Enter both passwords");
+    return;
+  }
 
-  document.getElementById("farmerSelect").innerHTML =
-    '<option value="">Choose Farmer</option>' +
-    list.map(f => `<option value="${f._id}">${f.name}</option>`).join('');
-
-  document.getElementById("farmerSelectFilter").innerHTML =
-    '<option value="">-- Select Farmer --</option>' +
-    list.map(f => `<option value="${f._id}">${f.name}</option>`).join('');
-}
-
-// ⭐ Add Work
-document.getElementById("addWork").addEventListener("click", async () => {
-  const farmerId = farmerSelect.value;
-  const workType = workType.value;
-  const minutes = convertToMinutes(document.getElementById("minutes").value);
-  const ratePer60 = Number(rate.value);
-
-  await fetch(API + "/admin/work", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
-    body: JSON.stringify({ farmerId, workType, minutes, ratePer60 })
+  const res = await fetch(API + "/admin/change-password", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", Authorization:"Bearer " + token() },
+    body:JSON.stringify({ username:"admin", currentPassword, newPassword })
   });
 
-  alert("Work Added!");
+  const data = await res.json();
+
+  if(data.success){
+    alert("Password Changed! Login Again.");
+    localStorage.removeItem("adminToken");
+    location.href = "index.html";
+  } else {
+    alert(data.error || "Failed to update password");
+  }
+}
+
+// =================== LOAD FARMERS =================== //
+async function loadFarmers(){
+  const res = await fetch(API + "/admin/farmers", {
+    headers:{ Authorization:"Bearer " + token() }
+  });
+  const list = await res.json();
+
+  let sel = document.getElementById("farmerSelect");
+  let filterSel = document.getElementById("farmerSelectFilter");
+
+  sel.innerHTML = `<option value="">-- Select --</option>`;
+  filterSel.innerHTML = `<option value="">-- Select --</option>`;
+
+  list.forEach(f=>{
+    sel.innerHTML += `<option value="${f._id}">${f.name}</option>`;
+    filterSel.innerHTML += `<option value="${f._id}">${f.name}</option>`;
+  });
+}
+
+document.getElementById("viewHistory").onclick = () => {
+  const id = document.getElementById("farmerSelectFilter").value;
+  if(!id) return alert("Select a farmer");
+  localStorage.setItem("farmerId", id);
+  location.href = "farmer.html";
+};
+
+// =================== ADD WORK =================== //
+function convertToMinutes(str){
+  if(!str.includes(".")) return Number(str) * 60;
+  let [h,m]=str.split(".");
+  if(m.length===1) m+="0";
+  return Number(h)*60 + Number(m);
+}
+
+document.getElementById("addWork").onclick = async () => {
+  const farmerId = document.getElementById("farmerSelect").value;
+  const workType = document.getElementById("workType").value;
+  const minutes = convertToMinutes(document.getElementById("minutes").value);
+  const ratePer60 = Number(document.getElementById("rate").value);
+
+  await fetch(API + "/admin/work", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", Authorization:"Bearer " + token() },
+    body:JSON.stringify({ farmerId, workType, minutes, ratePer60 })
+  });
+
+  alert("Work Added");
   loadWorks();
-});
+};
 
-// ⭐ Load Works
-document.getElementById("farmerSelectFilter").addEventListener("change", loadWorks);
-
-async function loadWorks() {
-  const farmer = farmerSelectFilter.value;
+// =================== LOAD WORKS =================== //
+async function loadWorks(){
+  const farmer = document.getElementById("farmerSelectFilter").value;
   const tbody = document.querySelector("#worksTable tbody");
   tbody.innerHTML = "";
 
-  if (!farmer) return;
+  if(!farmer) return;
 
   const res = await fetch(API + "/admin/work?farmerId=" + farmer, {
-    headers: { Authorization: "Bearer " + token() }
+    headers:{ Authorization:"Bearer " + token() }
   });
+  const ws = await res.json();
 
-  const works = await res.json();
-
-  let totalAmount = 0;
-  let totalPaid = 0;
-
-  works.forEach(w => {
-    totalAmount += w.totalAmount || 0;
-    totalPaid += w.paymentGiven || 0;
-
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${w.farmer?.name || "--"}</td>
-      <td>${new Date(w.date).toLocaleDateString("en-IN")}</td>
-      <td>${w.workType}</td>
-      <td>${w.minutes}</td>
-      <td>${w.ratePer60}</td>
-      <td>₹${(w.totalAmount || 0).toFixed(2)}</td>
-      <td>₹${(w.paymentGiven || 0).toFixed(2)}</td>
-
-      <td>
-        <input id="pay_${w._id}" type="number" placeholder="Amount" style="width:70px;">
-        <button onclick="makePayment('${w._id}', '${w.farmer?._id}')">Pay</button>
-      </td>
-
-      <td>
-        <button onclick="edit('${w._id}','${w.workType}','${w.minutes}','${w.ratePer60}','${w.paymentGiven || 0}')">Edit</button>
-        <button onclick="delWork('${w._id}')">Delete</button>
-      </td>
+  ws.forEach(w=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${w.farmer?.name}</td>
+        <td>${new Date(w.date).toLocaleDateString("en-IN")}</td>
+        <td>${w.workType}</td>
+        <td>${w.minutes}</td>
+        <td>${w.ratePer60}</td>
+        <td>₹${w.totalAmount.toFixed(2)}</td>
+        <td>₹${w.paymentGiven?.toFixed(2) || 0}</td>
+        <td>
+          <input id="pay_${w._id}" type="number" placeholder="Amount">
+          <button onclick="makePayment('${w._id}','${w.farmer?._id}')">Pay</button>
+        </td>
+        <td>
+          <button onclick="edit('${w._id}','${w.workType}','${w.minutes}','${w.ratePer60}','${w.paymentGiven||0}')">Edit</button>
+          <button onclick="delWork('${w._id}')">Delete</button>
+        </td>
+      </tr>
     `;
-    tbody.appendChild(tr);
   });
-
-  const balance = totalAmount - totalPaid;
-
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td colspan="5"><strong>Totals</strong></td>
-    <td><strong>₹${totalAmount.toFixed(2)}</strong></td>
-    <td><strong>₹${totalPaid.toFixed(2)}</strong></td>
-    <td colspan="2"><strong>Balance: ₹${balance.toFixed(2)}</strong></td>
-  `;
-  tbody.appendChild(tr);
 }
 
-// ⭐ Make Payment
+document.getElementById("farmerSelectFilter").onchange = loadWorks;
+
+// =================== PAYMENT =================== //
 async function makePayment(workId, farmerId){
-  const amt = Number(document.getElementById("pay_" + workId).value);
-  if (!amt) return alert("Enter valid amount");
+  const amount = Number(document.getElementById("pay_"+workId).value);
+  if(!amount) return alert("Enter amount");
 
   await fetch(API + "/admin/payment/" + farmerId, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
-    body: JSON.stringify({ amount: amt, workId })
+    method:"POST",
+    headers:{ "Content-Type":"application/json", Authorization:"Bearer " + token() },
+    body:JSON.stringify({ amount, workId })
   });
 
-  alert("Payment added!");
+  alert("Payment added");
   loadWorks();
 }
 
-// ⭐ EDIT
-function edit(id, type, minutes, rate, paid) {
-  editingWorkId = id;
-  edit_workType.value = type;
-  edit_minutes.value = minutes;
-  edit_rate.value = rate;
-  edit_paid.value = paid;
-  editPopup.style.display = "flex";
-}
+// =================== EDIT WORK =================== //
+let editingId = null;
 
-function closeEdit() {
-  editPopup.style.display = "none";
+function edit(id, type, minutes, rate, paid){
+  editingId = id;
+  document.getElementById("edit_workType").value = type;
+  document.getElementById("edit_minutes").value = minutes;
+  document.getElementById("edit_rate").value = rate;
+  document.getElementById("edit_paid").value = paid;
+  document.getElementById("editPopup").style.display = "flex";
 }
+function closeEdit(){ document.getElementById("editPopup").style.display = "none"; }
 
-async function saveEdit() {
-  await fetch(API + "/admin/work/" + editingWorkId, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token() },
-    body: JSON.stringify({
-      workType: edit_workType.value,
-      minutes: Number(edit_minutes.value),
-      ratePer60: Number(edit_rate.value),
-      paymentGiven: Number(edit_paid.value)
-    })
+async function saveEdit(){
+  const workType = document.getElementById("edit_workType").value;
+  const minutes = Number(document.getElementById("edit_minutes").value);
+  const ratePer60 = Number(document.getElementById("edit_rate").value);
+  const paymentGiven = Number(document.getElementById("edit_paid").value);
+
+  await fetch(API + "/admin/work/" + editingId, {
+    method:"PUT",
+    headers:{ "Content-Type":"application/json", Authorization:"Bearer " + token() },
+    body:JSON.stringify({ workType, minutes, ratePer60, paymentGiven })
   });
 
   alert("Updated!");
@@ -369,19 +324,25 @@ async function saveEdit() {
   loadWorks();
 }
 
-// ⭐ Delete Work
-async function delWork(id) {
-  if (!confirm("Delete work?")) return;
+// =================== DELETE WORK =================== //
+async function delWork(id){
+  if(!confirm("Delete this work?")) return;
 
   await fetch(API + "/admin/work/" + id, {
-    method: "DELETE",
-    headers: { Authorization: "Bearer " + token() }
+    method:"DELETE",
+    headers:{ Authorization:"Bearer " + token() }
   });
 
   loadWorks();
 }
 
-// ⭐ Load on start
+// =================== LOGOUT =================== //
+function logout(){
+  localStorage.removeItem("adminToken");
+  location.href = "index.html";
+}
+
+// =================== START =================== //
 window.onload = loadFarmers;
 </script>
 
