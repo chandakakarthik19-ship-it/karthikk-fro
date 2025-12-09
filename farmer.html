@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Farmer Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
 
   <style>
     body {
@@ -17,7 +16,7 @@
       margin: auto;
       padding: 20px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     h1, h3 {
@@ -49,11 +48,10 @@
     .totals {
       margin-top: 15px;
       font-weight: bold;
-      font-size: 16px;
     }
 
     button {
-      margin-top: 12px;
+      margin-top: 15px;
       padding: 10px 20px;
       background-color: #4CAF50;
       color: white;
@@ -75,183 +73,123 @@
       text-decoration: underline;
     }
 
+    .card {
+      padding: 20px;
+    }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Farmer Dashboard</h1>
-    <div class="card">
 
-      <!-- PDF content -->
-      <div id="pdfContent">
-        <div id="info">Loading farmer info...</div>
+<div class="container">
+  <h1>Farmer Dashboard</h1>
 
-        <h3>Work History</h3>
-        <div id="historyContainer">
-          <table id="historyTable">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Work Type</th>
-                <th>Minutes</th>
-                <th>Rate / 60</th>
-                <th>Total Amount</th>
-                <th>Paid</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+  <div class="card" id="pdfContent">
 
-        <div class="totals" id="totals"></div>
-      </div>
+    <div id="info">Loading farmer info...</div>
 
-      <!-- Buttons -->
-      <button onclick="downloadPDF()">Download Work History PDF</button>
-      <button onclick="shareSummary()">Share Summary on WhatsApp</button>
-      <button onclick="openFarmerChat()">Message Farmer on WhatsApp</button>
-      <button onclick="sharePDFWhatsApp()">Share PDF on WhatsApp</button>
+    <h3>Work History</h3>
 
-      <p><a href="#" onclick="logout()">Logout</a></p>
-    </div>
+    <table id="historyTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Work Type</th>
+          <th>Minutes</th>
+          <th>Rate</th>
+          <th>Total</th>
+          <th>Paid</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="totals" id="totals"></div>
   </div>
 
-  <!-- Proper pdf library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <button onclick="downloadPDF()">Download Work History PDF</button>
 
-  <script>
-    const API = "https://karthikkk-back.onrender.com/api";
+  <p><a href="#" onclick="logout()">Logout</a></p>
+</div>
 
-    // Get farmer ID
-    const farmerId = localStorage.getItem("farmerId");
-    if (!farmerId) {
-      alert("Please login first.");
-      location.href = "farmer-login.html";
-    } else {
-      loadFarmerHistory(farmerId);
-    }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    async function loadFarmerHistory(id) {
-      try {
-        // Fetch farmer info
-        const res = await fetch(`${API}/farmer/${id}`);
-        const farmer = await res.json();
+<script>
+const API = "https://karthikkk-back.onrender.com/api";
 
-        localStorage.setItem("farmerPhone", farmer.phone);
+const farmerId = localStorage.getItem("farmerId");
+if(!farmerId){
+  alert("Please login first");
+  location.href = "farmer-login.html";
+}
 
-        document.getElementById("info").innerHTML = `
-          <strong>${farmer.name}</strong><br>
-          Phone: ${farmer.phone}<br>
-        `;
+loadFarmerHistory(farmerId);
 
-        // Fetch history
-        const hr = await fetch(`${API}/farmer/${id}/history`);
-        const works = await hr.json();
+async function loadFarmerHistory(id){
+  try {
+    const res = await fetch(`${API}/farmer/${id}`);
+    const farmer = await res.json();
 
-        const tbody = document.querySelector("#historyTable tbody");
-        tbody.innerHTML = "";
+    document.getElementById("info").innerHTML = `
+      <strong>${farmer.name}</strong><br>
+      Phone: ${farmer.phone}<br>
+    `;
 
-        let totalAmount = 0;
-        let totalPaid = 0;
+    const hr = await fetch(`${API}/farmer/${id}/history`);
+    const works = await hr.json();
 
-        if (works.length) {
-          works.forEach(w => {
-            totalAmount += w.totalAmount || 0;
-            totalPaid += w.paymentGiven || 0;
+    const tbody = document.querySelector("#historyTable tbody");
+    tbody.innerHTML = "";
 
-            tbody.innerHTML += `
-              <tr>
-                <td>${new Date(w.date).toLocaleDateString("en-IN")}</td>
-                <td>${w.workType}</td>
-                <td>${w.minutes}</td>
-                <td>${w.ratePer60}</td>
-                <td>₹${(w.totalAmount || 0).toFixed(2)}</td>
-                <td>₹${(w.paymentGiven || 0).toFixed(2)}</td>
-                <td>${w.notes || ""}</td>
-              </tr>
-            `;
-          });
-        } else {
-          tbody.innerHTML = `<tr><td colspan="7">No work history available.</td></tr>`;
-        }
+    let totalAmount = 0;
+    let totalPaid = 0;
 
-        // Balance color
-        const balance = totalAmount - totalPaid;
-        let color = balance > 0 ? "red" : "green";
+    works.forEach(w=>{
+      totalAmount += w.totalAmount || 0;
+      totalPaid += w.paymentGiven || 0;
 
-        document.getElementById("totals").innerHTML =
-          `Total Work: ₹${totalAmount.toFixed(2)} | 
-           Paid: ₹${totalPaid.toFixed(2)} | 
-           <span style="color:${color}">Balance: ₹${balance.toFixed(2)}</span>`;
-      } catch (err) {
-        alert("Failed to load farmer data.");
-      }
-    }
+      tbody.innerHTML += `
+        <tr>
+          <td>${new Date(w.date).toLocaleDateString("en-IN")}</td>
+          <td>${w.workType}</td>
+          <td>${w.minutes}</td>
+          <td>${w.ratePer60}</td>
+          <td>₹${(w.totalAmount || 0).toFixed(2)}</td>
+          <td>₹${(w.paymentGiven || 0).toFixed(2)}</td>
+          <td>${w.notes || ""}</td>
+        </tr>
+      `;
+    });
 
-    // =================== PDF DOWNLOAD =================== //
-    function downloadPDF() {
-      const element = document.getElementById("pdfContent");
+    const balance = totalAmount - totalPaid;
 
-      const opt = {
-        margin: 0.5,
-        filename: "work-history.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
-      };
+    document.getElementById("totals").innerHTML =
+      `Total: ₹${totalAmount.toFixed(2)} | Paid: ₹${totalPaid.toFixed(2)} | Balance: ₹${balance.toFixed(2)}`;
 
-      html2pdf().set(opt).from(element).save();
-    }
+  } catch (err) {
+    console.error(err);
+    alert("Could not load data");
+  }
+}
 
-    // ======================= SHARE SUMMARY ======================= //
-    function shareSummary() {
-      const farmerPhone = localStorage.getItem("farmerPhone");
-      const phone = farmerPhone ? "+91" + farmerPhone : "";
+function downloadPDF(){
+  const element = document.getElementById("pdfContent");
 
-      const message =
-        `📋 *Work Summary* \n\n` +
-        document.getElementById("totals").innerText +
-        `\n\n📱 Tractor Tracker`;
+  html2pdf().from(element).set({
+    margin: 0.5,
+    filename: "work-history.pdf",
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+  }).save();
+}
 
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-      window.open(url, "_blank");
-    }
-
-    // ========================= WHATSAPP CHAT ========================= //
-    function openFarmerChat() {
-      const farmerPhone = localStorage.getItem("farmerPhone");
-      const phone = farmerPhone ? "+91" + farmerPhone : "";
-
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent("Hello, here is your work update.")}`;
-      window.open(url, "_blank");
-    }
-
-    // ========================= SHARE PDF ON WHATSAPP ========================= //
-    function sharePDFWhatsApp() {
-      downloadPDF(); // Step 1: download PDF
-
-      const farmerPhone = localStorage.getItem("farmerPhone");
-      const phone = farmerPhone ? "+91" + farmerPhone : "";
-
-      const message =
-        "📄 *Work History PDF Generated!*\n\n" +
-        "Please attach the downloaded PDF and send it here.\n\n" +
-        "📱 Tractor Tracker";
-
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-
-      setTimeout(() => window.open(url, "_blank"), 1500);
-    }
-
-    // ========================= LOGOUT ========================= //
-    function logout() {
-      localStorage.removeItem("farmerId");
-      localStorage.removeItem("farmerPhone");
-      location.href = "farmer-login.html";
-    }
-  </script>
+function logout(){
+  localStorage.removeItem("farmerId");
+  location.href = "farmer-login.html";
+}
+</script>
 
 </body>
 </html>
